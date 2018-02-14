@@ -34,11 +34,12 @@ def getUserFunctions(is_dwarf):
 				main_addr = func
 				break
 		if main_addr != 0:
-			lea_addr = FindCode(main_addr , SEARCH_DOWN)
-			if GetMnem(lea_addr) == "lea":
-				main_main = GetOperandValue(lea_addr,1)
-				for func in idautils.Functions(main_main,main_addr):
-					ret += [func]
+			lea_addr = main_addr
+			while GetMnem(lea_addr) != "lea":
+				lea_addr = FindCode(lea_addr , SEARCH_DOWN)
+			main_main = GetOperandValue(lea_addr,1)
+			for func in idautils.Functions(main_main,main_addr):
+				ret += [func]
 	return ret
 def setLibFunc(name,addr):
 	libNameList = ["core::","alloc::","std::","builtins::","std_unicode::"]
@@ -81,14 +82,15 @@ def demangle():
 def stringRecoveryA():
 	_rodata = idaapi.get_segm_by_name(".rodata")
 	_data_rel_ro = idaapi.get_segm_by_name(".data.rel.ro")
-
 	StringDict = {}
-	for addr in xrange(_data_rel_ro.startEA,_data_rel_ro.endEA,8):
-		Len = Qword(addr)
-		Addr =  Qword(addr-8)
-		if Byte(Addr+Len) == 0:
-			Len +=1
+	startEA = _data_rel_ro.startEA
+	loopcount = _data_rel_ro.endEA - startEA
+	for addr in xrange(0,loopcount,8):
+		Len = Qword(startEA+addr)
+		Addr =  Qword(startEA+addr-8)
 		if Len < 1024:
+			if Byte(Addr+Len) == 0:
+				Len +=1
 			if idaapi.get_visible_segm_name(idaapi.getseg(Addr)) == "_rodata":
 				StringDict[Addr] = Len
 	for k in StringDict.keys():
