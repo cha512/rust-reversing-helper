@@ -82,6 +82,13 @@ def demangle():
 def stringRecoveryA():
 	_rodata = idaapi.get_segm_by_name(".rodata")
 	_data_rel_ro = idaapi.get_segm_by_name(".data.rel.ro")
+	_rodata_name = "_rodata"
+	
+	#for exe
+	if not _rodata:
+		_rodata = idaapi.get_segm_by_name(".rdata")
+		_data_rel_ro = idaapi.get_segm_by_name(".rdata")
+		_rodata_name = "_rdata"
 	StringDict = {}
 	startEA = _data_rel_ro.startEA
 	loopcount = _data_rel_ro.endEA - startEA
@@ -91,12 +98,18 @@ def stringRecoveryA():
 		if Len < 1024:
 			if Byte(Addr+Len) == 0:
 				Len +=1
-			if idaapi.get_visible_segm_name(idaapi.getseg(Addr)) == "_rodata":
+			if idaapi.get_visible_segm_name(idaapi.getseg(Addr)) == _rodata_name:
 				StringDict[Addr] = Len
 	for k in StringDict.keys():
 		MyMakeStr(k,StringDict[k])
 
 def stringRecoveryB():
+	
+	#for exe
+	_rodata_name = "_rodata"
+	if not idaapi.get_segm_by_name(".rodata"):
+		_rodata_name = "_rdata"
+	
 	userfunc = getUserFunctions(False)
 	for func in userfunc:
 		addr_list = []
@@ -111,7 +124,7 @@ def stringRecoveryB():
 						Addr = GetOperandValue(addr_list[i],1)
 						Len  = GetOperandValue(addr_list[i+2],1)
 						seg_name = idaapi.get_visible_segm_name(idaapi.getseg(Addr))
-						if seg_name == "_rodata":
+						if seg_name == _rodata_name:
 							if Byte(Addr+Len) != 0:
 								MyMakeStr(Addr,Len)
 								#print hex(Addr), Len
@@ -119,7 +132,7 @@ def stringRecoveryB():
 					Addr = GetOperandValue(addr_list[i],1)
 					Len  = GetOperandValue(addr_list[i+1],1)
 					seg_name = idaapi.get_visible_segm_name(idaapi.getseg(Addr))
-					if seg_name == "_rodata":
+					if seg_name == _rodata_name:
 						if Byte(Addr+Len) == 0:
 							Len +=1
 						MyMakeStr(Addr,Len)
@@ -128,20 +141,22 @@ def stringRecoveryB():
 				 if "ref_" in GetOpnd(addr_list[i],1) or "off_" in GetOpnd(addr_list[i],1):
 				 	Addr = GetOperandValue(addr_list[i],1)
 				 	seg_name = idaapi.get_visible_segm_name(idaapi.getseg(Addr))
-				 	if seg_name ==  "_rodata" or seg_name == "_data_rel_ro":
+				 	if seg_name ==  _rodata_name or seg_name == "_data_rel_ro":
 				 		Len = Qword(Addr+8)
 				 		Cmt = get_string(Qword(Addr),Len)
 				 		if Cmt != "":
 				 			#print hex(addr_list[i]),Len,get_string(Qword(Addr),Len)
 				 			MakeRptCmt(addr_list[i],Cmt)
 				 		
-				
-demangle()
-stringRecoveryB()
-stringRecoveryA()
-stringRecoveryA()
+def main():
+	demangle()
+	stringRecoveryB()
+	stringRecoveryA()
+	stringRecoveryA()
 
+	for addr in getUserFunctions(False):
+		print hex(addr)
+	#print getUserFunctions(False)
 
-for addr in getUserFunctions(False):
-	print hex(addr)
-#print getUserFunctions(False)
+if __name__ == "__main__":
+	main()
