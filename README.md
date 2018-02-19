@@ -17,8 +17,7 @@ exe라도 DWARF 정보가 있으면 디맹글링 정도는 될지 모르겠지�
 ## 기능
 1. 함수이름을 전부 디맹글링 해줍니다. (function name demangle)
 2. 사용되는 문자열을 잡아줍니다. (string recovery)
-
+3. 제대로 잡히지 않는 인자를 바로 잡아 줍니다. (argument recovery)
 ## TODO
 - [ ] 다양한 바이너리로 테스트
-
-- [x] exe 지원
+- [ ] exe 지원
