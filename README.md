@@ -4,7 +4,7 @@ A ida script to help reversing rust binary
 
 ![](https://raw.githubusercontent.com/cha5126568/rust-reversing-helper/master/pic/diff.png)
 
-![](https://raw.githubusercontent.com/cha5126568/rust-reversing-helper/master/pic/diff2.PNG)
+![](https://raw.githubusercontent.com/cha5126568/rust-reversing-helper/master/pic/graph.PNG)
 
 ## 사용법
 
