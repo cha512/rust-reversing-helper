@@ -14,7 +14,7 @@ A ida script to help reversing rust binary
 
 ## 주의사항
 1. 기본적 ELF x64만 지원합니다. 
-exe라도 DWARF 정보가 있으면 디맹글링 정도는 될지 모르겠지만, 테스트해보진 않았습니다.
+exe는 인자를 바로 잡는 기능에서 문제가 생길겁니다.(fastcall 에서 리눅스랑 윈도우랑 인자 넣는 순서가 달라요..ㅜㅜ)
 
 ## 기능
 1. 함수이름을 전부 디맹글링 해줍니다. (function name demangle)
