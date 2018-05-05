@@ -26,7 +26,7 @@ def nameFilter(name):
 		name = name.replace(c,"_")
 	return name 
 
-def getUserFunctions(is_dwarf):
+def getUserFunctions(is_dwarf=False):
 	ret = []
 	if is_dwarf:
 		for func in idautils.Functions():
@@ -49,8 +49,11 @@ def getUserFunctions(is_dwarf):
 				ret += [func]
 	return ret
 
-def setLibFunc(name,addr):
+def setLibFunc(name,addr,flag=False):
 	libNameList = ["core::","alloc::","std::","builtins::","std_unicode::"]
+	if flag:
+		libNameList.append("sub_")
+		libNameList.append("_Unwind_Resume")
 	for chk in libNameList:
 		if chk in name:
 			flags = get_func_flags(addr)
@@ -87,6 +90,11 @@ def demangle():
 		if full_name != old_name :
 			MakeNameEx(addr, nameMake(full_name), SN_NOCHECK | 0x800) #SN_FORCE
 			SetFunctionCmt(addr, full_name, 1)
+	uFunc = getUserFunctions()
+	
+	for i in xrange(0,len(FuncList)):
+		if not FuncList[i] in uFunc:
+			setLibFunc(FuncNameList[i],FuncList[i],True)
 
 def stringRecoveryA():
 	_rodata = idaapi.get_segm_by_name(".rodata")
@@ -165,7 +173,9 @@ def paramRecovery():
 	reg_rcx = ['rcx','ecx','cx','cl']
 	reg_r8  = ['r8','r8d','r8w','r8b']
 	reg_r9  = ['r9','r9d','r9w','r9b']
-	regs    = [reg_rdi, reg_rsi, reg_rdx, reg_rcx, reg_r8, reg_r9]
+	xmm     = ['xmm0','xmm1','xmm2','xmm3']
+	
+	regs    = [reg_rdi, reg_rsi, reg_rdx, reg_rcx, reg_r8, reg_r9,xmm]
 	bits    = [64,32,16,8]
 	dType   = ["_QWORD","_DWORD","_WORD","_BYTE"]
 	ChkDict_0 = {}
@@ -174,7 +184,7 @@ def paramRecovery():
 
 	for func in idautils.Functions():
 		pCount = 0
-		for i in xrange(0,6):
+		for i in xrange(0,len(regs)):
 			ChkDict_0[i] = [MAX_ADDR,""]
 			ChkDict_1[i] = [MAX_ADDR,""]
 		inst = func
@@ -186,7 +196,11 @@ def paramRecovery():
 							ChkDict_0[i] = [inst,dType[regs[i].index(reg)]]
 						if GetOpnd(inst,1) in regs[i] and ChkDict_1[i][0] == MAX_ADDR:
 							ChkDict_1[i] = [inst,dType[regs[i].index(reg)]]
-
+			elif "push" in GetMnem(inst):
+				for i in xrange(len(regs)):
+					for reg in regs[i]:
+						if GetOpnd(inst,0) in regs[i] and ChkDict_1[i][0] == MAX_ADDR:
+							ChkDict_1[i] = [inst,dType[regs[i].index(reg)]]
 			inst = FindCode(inst , SEARCH_DOWN)
 		for i in xrange(0,6):
 			if ChkDict_0[i][0] > ChkDict_1[i][0] and ChkDict_1[i][0] != MAX_ADDR:
@@ -211,10 +225,10 @@ def main():
 	stringRecoveryB()
 	stringRecoveryA()
 	stringRecoveryA()
-	#Experimental Features(only integer argument)
+	#Experimental Feature
 	paramRecovery()
 	
-	for addr in getUserFunctions(False):
+	for addr in getUserFunctions():
 		print hex(addr)
 	#print getUserFunctions(False)
 
