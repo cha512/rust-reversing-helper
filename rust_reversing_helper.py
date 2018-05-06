@@ -3,6 +3,7 @@ from idc import *
 import idautils
 import idaapi
 import subprocess
+import os
 from hashlib import sha256
 
 
@@ -278,8 +279,8 @@ def main():
 
 	#Experimental Feature
 	paramRecovery()
-	
-	print getUserFunctions()
+	for i in getUserFunctions():
+          print hex(i), 
 
 if __name__ == "__main__":
 	main()
