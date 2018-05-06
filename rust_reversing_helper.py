@@ -3,6 +3,10 @@ from idc import *
 import idautils
 import idaapi
 import subprocess
+from hashlib import sha256
+
+
+
 
 def get_string(addr,Len):
   out = ""
@@ -43,7 +47,7 @@ def getUserFunctions(is_dwarf=False):
 		if main_addr != 0:
 			lea_addr = main_addr
 			while GetMnem(lea_addr) != "lea":
-				lea_addr = FindCode(lea_addr , SEARCH_DOWN)
+				lea_addr = FindCode(lea_addr, SEARCH_DOWN)
 			main_main = GetOperandValue(lea_addr,1)
 			for func in idautils.Functions(main_main,main_addr):
 				ret += [func]
@@ -133,7 +137,7 @@ def stringRecoveryB():
 		inst = func
 		while inst < FindFuncEnd(func):
 			addr_list += [inst]
-			inst = FindCode(inst , SEARCH_DOWN)
+			inst = FindCode(inst, SEARCH_DOWN)
 		for i in xrange(len(addr_list)-2):
 			if GetMnem(addr_list[i]) == "lea" and GetMnem(addr_list[i+1]) == "mov" and GetMnem(addr_list[i+2]) == "mov":
 				if "qword ptr [" in GetOpnd(addr_list[i+1],0) and "qword ptr [" in GetOpnd(addr_list[i+2],0):
@@ -201,36 +205,81 @@ def paramRecovery():
 					for reg in regs[i]:
 						if GetOpnd(inst,0) in regs[i] and ChkDict_1[i][0] == MAX_ADDR:
 							ChkDict_1[i] = [inst,dType[regs[i].index(reg)]]
-			inst = FindCode(inst , SEARCH_DOWN)
+			inst = FindCode(inst, SEARCH_DOWN)
 		for i in xrange(0,6):
 			if ChkDict_0[i][0] > ChkDict_1[i][0] and ChkDict_1[i][0] != MAX_ADDR:
 				pCount +=1
 		#if pCount == 6 probably uses stack
-		if pCount < 6:
-			#fType = GetType(func).split(" ")[0]
-			fName = GetFunctionName(func)
-			realType = "__int64 __fastcall " + nameFilter(fName) + " ("
-			for i in xrange(pCount):
-				if ChkDict_1[i][1] == "":
-					ChkDict_1[i][1] = "_QWORD"
-				realType += (ChkDict_1[i][1] + ",")
-			if realType[-1:] == ",":
-				realType = realType[:-1]
-			realType += ")"
-			if SetType(func,realType) != True:
-				print realType
+		if type(GetType(func)) != type(None):
+			if pCount < 6 and GetType(func).count(",") >= 3:
+				fName = GetFunctionName(func)
+				realType = "__int64 __fastcall " + nameFilter(fName) + " ("
+				for i in xrange(pCount):
+					if ChkDict_1[i][1] == "":
+						ChkDict_1[i][1] = "_QWORD"
+					realType += (ChkDict_1[i][1] + ",")
+				if realType[-1:] == ",":
+					realType = realType[:-1]
+				realType += ")"
+				
+				if SetType(func,realType) != True:
+					print realType
+def LoadSignature(fname):
+	
+	print 'InFunc'
+	stream = open(fname,"rb")
+	sig = stream.read()
+	stream.close()
+	sig = "rDict = " + sig
+	exec(sig)
+	
+	
+	FuncNameList = []
+	demangleList = []
+	FuncList = []
+
+	for func in idautils.Functions():
+		name = GetFunctionName(func)
+		fEnd = FindFuncEnd(func)
+		fSize = fEnd-func
+		inst = func
+		Sig = ""
+		
+		while inst < fEnd:
+			iSize = ItemSize(inst)
+			Sig += str(iSize)+chr(Byte(inst))+chr(Byte(inst+iSize-1))
+			inst = FindCode(inst, SEARCH_DOWN)	
+		
+		cHash = str(sha256(Sig).hexdigest())
+		try:
+			FuncNameList += [rDict.keys()[rDict.values().index(cHash)]]
+			FuncList += [func]
+			#print cHash
+		except:
+			pass
+	demangleList = _demangle(FuncNameList)
+	print "Total Recovered :", len(FuncList)
+	for i in xrange(len(FuncList)):
+		addr = FuncList[i]
+		old_name = FuncNameList[i]
+		full_name = demangleList[i]
+		setLibFunc(full_name,addr)
+		if full_name != old_name :
+			MakeNameEx(addr, nameMake(full_name), SN_NOCHECK | 0x800)
+			SetFunctionCmt(addr, full_name, 1)
 		
 def main():
+	LoadSignature("Signature.rust")
+	
 	demangle()
-	stringRecoveryB()
-	stringRecoveryA()
-	stringRecoveryA()
+	for i in xrange(0,5):
+		stringRecoveryA()
+		stringRecoveryB()
+
 	#Experimental Feature
 	paramRecovery()
 	
-	for addr in getUserFunctions():
-		print hex(addr)
-	#print getUserFunctions(False)
+	print getUserFunctions()
 
 if __name__ == "__main__":
 	main()
