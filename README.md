@@ -8,9 +8,7 @@ A ida script to help reversing rust binary
 
 ## 사용법
 
-1. https://github.com/luser/rustfilt
-이거 설치해서 스크립트에 있는 rustfilt 경로 바꿔주세요.
-2. IDA 7.0 에서 스크립트 불러와주면 끝!
+https://blog.naver.com/cha5126568/221269540081
 
 ## 주의사항
 1. 기본적 ELF x64만 지원합니다. 
