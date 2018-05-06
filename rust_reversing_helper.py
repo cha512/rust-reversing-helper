@@ -280,7 +280,8 @@ def main():
 	#Experimental Feature
 	paramRecovery()
 	for i in getUserFunctions():
-          print hex(i), 
+          print hex(i),
+	print ""
 
 if __name__ == "__main__":
 	main()
