@@ -8,7 +8,7 @@ A ida script to help reversing rust binary
 
 ## 사용법
 
-https://blog.naver.com/cha5126568/221269540081
+http://kong.re.kr/?p=71
 
 ## 주의사항
 1. 기본적 ELF x64만 지원합니다. 
