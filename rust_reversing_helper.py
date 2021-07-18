@@ -168,7 +168,7 @@ def stringRecoveryB():
 				 		Cmt = get_string(get_qword(Addr),Len)
 				 		if Cmt != "":
 				 			#print hex(addr_list[i]),Len,get_string(get_qword(Addr),Len)
-				 			MakeRptCmt(addr_list[i],Cmt)
+				 			set_cmt(addr_list[i],Cmt,1)
 
 def paramRecovery():
 	#x64 fastcall in Linux
