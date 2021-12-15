@@ -1,0 +1,3 @@
+[submodule "third_party/rustc-demangle"]
+	path = third_party/rustc-demangle
+	url = https://github.com/rust-lang/rustc-demangle
