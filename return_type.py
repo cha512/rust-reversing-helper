@@ -41,9 +41,6 @@ def main():
 							bisRetbb = True
 						start_addr = find_code(start_addr, SEARCH_DOWN)
 					
-					if func_ea == start_addr:
-						bisRetbb = False
-					
 					start_addr = new_start_addr
 										
 					if bisRetbb:
@@ -57,13 +54,12 @@ def main():
 							op1 = print_operand(start_addr, 0)
 							op2 = print_operand(start_addr, 1)
 							
-							if mnemonic == "retn":
+							if mnemonic == "pop":
 								if op1 in used_reg:
 									used_reg.remove(op1)
-
-							if mnemonic== "pop":
 								if op1 == "rsp":
 									break
+							
 							if mnemonic in ["mov", "sub", "xor", "lea"]:
 								if op1 in ["rax", "rdx"]:
 									used_reg.add(op1)
@@ -96,7 +92,7 @@ def main():
 					if ret_type.find("__fastcall") != -1:
 						ret_type = "__int128 __fastcall"
 						type_str = ret_type + " temp" + type_str[idx:]
-						print(type_str)
+						#print(type_str)
 						set_type(func_ea, type_str)
 		
 if __name__ == "__main__":
