@@ -2,11 +2,9 @@
 from idc import *
 import idautils
 import idaapi
-import subprocess
-import os
-import demangle
 
-from hashlib import sha256
+import demangle
+import return_type
 
 
 def get_string(addr,Len):
@@ -87,7 +85,7 @@ def paramRecovery():
 	MAX_ADDR = 0xffffffffffffffff
 	
 	
-	for seg in Segments():
+	for seg in idautils.Segments():
 		segname = get_segm_name(seg)
 		if "text" in segname:
 			
@@ -133,6 +131,7 @@ def paramRecovery():
 def main():
 	demangle.main()
 	paramRecovery()
+	return_type.main()
 
 
 if __name__ == "__main__":

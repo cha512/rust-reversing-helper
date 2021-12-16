@@ -9,7 +9,7 @@ A ida script to help reversing rust binary
 ## Usage
 
 ```
-Will write...
+Will be written...
 ```
 
 
